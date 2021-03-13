@@ -179,16 +179,16 @@ static void tinycli_readline_onExit(struct StateMachine * const pMyMachine)
 
 static void tinycli_parseline_handler(struct StateMachine * const pMyMachine)
 {
-    if (readStringLen > 0) {
+    // if (readStringLen > 0) {
 
-        if (HSS_TinyCLI_ParseIntoTokens(myBuffer)) {
-            HSS_TinyCLI_Execute();
-        }
-    }
+    //     if (HSS_TinyCLI_ParseIntoTokens(myBuffer)) {
+    //         HSS_TinyCLI_Execute();
+    //     }
+    // }
 
-    if (pMyMachine->state == TINYCLI_PARSELINE) {
-        pMyMachine->state = TINYCLI_READLINE;
-    }
+    // if (pMyMachine->state == TINYCLI_PARSELINE) {
+    //     pMyMachine->state = TINYCLI_READLINE;
+    // }
 }
 
 /////////////////
