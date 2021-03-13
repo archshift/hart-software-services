@@ -84,8 +84,8 @@ misc/stack_guard.o: misc/stack_guard.c config.h
 #
 
 EXTRA_SRCS-$(CONFIG_OPENSBI) += \
-        thirdparty/opensbi/lib/sbi/sbi_string.c
+        sm/opensbi/lib/sbi/sbi_string.c
 ifdef CONFIG_OPENSBI
-INCLUDES += -I./thirdparty/opensbi/include/sbi
+INCLUDES += -I./sm/opensbi/include/sbi
 endif
 

@@ -216,7 +216,7 @@ static bool copyBootImageToDDR_(struct HSS_BootImage *pBootImage, char *pDest,
 
     // TODO: quickly validate boot image header before a needless copy is
     // performed
-    mHSS_DEBUG_PRINTF(LOG_NORMAL, "Copying %lu bytes to 0x%X" CRLF,
+    mHSS_DEBUG_PRINTF(LOG_NORMAL, "Copying %lu bytes to 0x%p" CRLF,
         pBootImage->bootImageLength, pDest);
 
     const size_t maxChunkSize = 512u;
@@ -289,7 +289,7 @@ static bool getBootImageFromMMC_(struct HSS_BootImage **ppBootImage)
     // if we are using MMC, then we need to do an initial copy of the
     // boot header into our structure, for subsequent use
     mHSS_DEBUG_PRINTF(LOG_NORMAL, "Preparing to copy from MMC to DDR ..." CRLF);
-    mHSS_DEBUG_PRINTF(LOG_NORMAL, "Attempting to read image header (%d bytes) ..." CRLF,
+    mHSS_DEBUG_PRINTF(LOG_NORMAL, "Attempting to read image header (%zd bytes) ..." CRLF,
         sizeof(struct HSS_BootImage));
 
     size_t srcOffset = 0u;

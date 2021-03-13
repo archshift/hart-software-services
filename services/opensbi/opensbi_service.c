@@ -117,6 +117,14 @@ static void opensbi_idle_handler(struct StateMachine * const pMyMachine)
 
 /////////////////
 
+static void sbi_hss_e51_init(struct sbi_scratch *scratch, bool coldboot)
+{
+    (void)coldboot;
+	int rc = sbi_console_init(scratch);
+	if (rc)
+		sbi_hart_hang();
+}
+
 extern unsigned long _trap_handler;
 void HSS_OpenSBI_Setup(enum HSSHartId hartid)
 {
@@ -210,15 +218,12 @@ enum IPIStatusCode HSS_OpenSBI_IPIHandler(TxId_t transaction_id, enum HSSHartId 
 #include <sbi/sbi_error.h>
 #include "hss_boot_service.h"
 
-static int sbi_ecall_hss_handler(struct sbi_scratch *scratch,
-    unsigned long extid, unsigned long funcid,
-    unsigned long *args, unsigned long *out_val, struct sbi_trap_info *out_trap)
+static int sbi_ecall_hss_handler(unsigned long extid, unsigned long funcid,
+    const struct sbi_trap_regs *args, unsigned long *out_val, struct sbi_trap_info *out_trap)
 {
     int ret = 0;
     //struct sbi_scratch *scratch = sbi_scratch_thishart_ptr();
 
-    (void)scratch;
-    (void)args;
     uint32_t index;
 
     switch (funcid) {

@@ -47,7 +47,7 @@ INCLUDES=\
 	-I../../include \
 	-I../../ssmb/ipi/ \
 	-I../../ \
-	-I../../thirdparty/opensbi/include \
+	-I../../sm/opensbi/include \
 	
 
 bin2chunks: bin2chunks.c

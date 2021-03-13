@@ -534,7 +534,7 @@ static void boot_download_chunks_onExit(struct StateMachine * const pMyMachine)
                 if (pBootImage->hart[peer-1].entryPoint == pBootImage->hart[target-1].entryPoint) {
                     // found another hart in same boot set as me...
 
-                    mHSS_DEBUG_PRINTF(LOG_NORMAL, "%s::u54_%u:sbi_init %p" CRLF, pMyMachine->pMachineName,
+                    mHSS_DEBUG_PRINTF(LOG_NORMAL, "%s::u54_%u:sbi_init %zx" CRLF, pMyMachine->pMachineName,
                         peer, pBootImage->hart[peer-1].entryPoint);
                     result = IPI_MessageAlloc(&(pInstanceData->msgIndexAux));
                     assert(result);
@@ -550,7 +550,7 @@ static void boot_download_chunks_onExit(struct StateMachine * const pMyMachine)
                 }
             }
 #endif
-            mHSS_DEBUG_PRINTF(LOG_NORMAL, "%s::u54_%u:sbi_init %p" CRLF, pMyMachine->pMachineName,
+            mHSS_DEBUG_PRINTF(LOG_NORMAL, "%s::u54_%u:sbi_init %zx" CRLF, pMyMachine->pMachineName,
                 target, pBootImage->hart[target-1].entryPoint);
             result = IPI_MessageAlloc(&(pInstanceData->msgIndex));
             assert(result);
@@ -564,7 +564,7 @@ static void boot_download_chunks_onExit(struct StateMachine * const pMyMachine)
             assert(result);
         }
     } else {
-        mHSS_DEBUG_PRINTF(LOG_NORMAL, "%s::target is %u, pBootImage is %p, skipping sbi_init %p" CRLF,
+        mHSS_DEBUG_PRINTF(LOG_NORMAL, "%s::target is %u, pBootImage is %p, skipping sbi_init %zx" CRLF,
             pMyMachine->pMachineName, target, pBootImage, pBootImage->hart[target-1].entryPoint);
     }
 }
@@ -766,7 +766,7 @@ bool HSS_Boot_Custom(void)
     chunkNum = 0u;
     subChunkOffset = 0u;
     pChunk += firstChunk;
-    mHSS_DEBUG_PRINTF(LOG_NORMAL, "Downloading chunks for HART%d at 0x%X" CRLF, target, (uint64_t)pChunk->execAddr);
+    mHSS_DEBUG_PRINTF(LOG_NORMAL, "Downloading chunks for HART%d at 0x%zX" CRLF, target, (uint64_t)pChunk->execAddr);
     while (pChunk->size != 0u) {
         if ((pChunk->owner == target) && (HSS_PMP_CheckWrite(target, pChunk->execAddr, pChunk->size))) {
 #if IS_ENABLED(CONFIG_DEBUG_CHUNK_DOWNLOADS)

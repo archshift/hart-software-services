@@ -41,14 +41,16 @@
 #include <sbi/sbi_console.h>
 #include <sbi/sbi_platform.h>
 #include <sbi/riscv_io.h>
+#include <sbi_utils/fdt/fdt_fixup.h>
 #include <sbi_utils/irqchip/plic.h>
 #include <sbi_utils/serial/uart8250.h>
 #include <sbi_utils/sys/clint.h>
+#include "mss_sw_config.h"
+
+#include <sm.h>
 
 #define MPFS_HART_COUNT            5
 #define MPFS_HART_STACK_SIZE       8192
-
-#define MPFS_SYS_CLK           	   1000000000
 
 #define MPFS_CLINT_ADDR            0x2000000
 
@@ -56,57 +58,25 @@
 #define MPFS_PLIC_NUM_SOURCES      0x35
 #define MPFS_PLIC_NUM_PRIORITIES   7
 
-#define MPFS_UART0_ADDR            0x10010000
-#define MPFS_UART1_ADDR            0x10011000
-#define MPFS_UART_BAUDRATE         115200
-
 /**
  * The MPFS SoC has 5 HARTs but HART ID 0 doesn't have S mode. enable only
  * HARTs 1 to 4.
  */
-#ifndef MPFS_ENABLED_HART_MASK
-#  define MPFS_ENABLED_HART_MASK    (1 << 1 | 1 << 2 | 1 << 3 | 1 << 4)
-#endif
-
-#define MPFS_HARITD_DISABLED            ~(MPFS_ENABLED_HART_MASK)
+static u32 hart_idx2id[5] = { -1U, 1, 2, 3, 4 };
 
 extern unsigned long STACK_SIZE_PER_HART;
 
 static int mpfs_final_init(bool cold_boot)
 {
-    //void *fdt;
+    sm_init(cold_boot);
 
-    if (!cold_boot)
+    if (!cold_boot) return 0;
+
+	void *fdt = sbi_scratch_thishart_arg1_ptr();
+    fdt_cpu_fixup(fdt);
+	fdt_fixups(fdt);
+
     return 0;
-
-    //fdt = sbi_scratch_thishart_arg1_ptr();
-
-    return 0;
-}
-
-static u32 mpfs_pmp_region_count(u32 hartid)
-{
-    return 1;
-}
-
-static int mpfs_pmp_region_info(u32 hartid, u32 index,
-             ulong *prot, ulong *addr, ulong *log2size)
-{
-    int ret = 0;
-
-    switch (index) {
-    case 0:
-        *prot = PMP_R | PMP_W | PMP_X;
-        *addr = 0;
-        *log2size = __riscv_xlen;
-        break;
-
-    default:
-        ret = -1;
-        break;
-    };
-
-    return ret;
 }
 
 static bool console_initialized = false;
@@ -114,7 +84,7 @@ static bool console_initialized = false;
 static void mpfs_console_putc(char ch)
 {
     if (console_initialized) {
-        u32 hartid = sbi_current_hartid();
+        u32 hartid = current_hartid();
         int uart_putc(int hartid, const char ch); //TBD
         uart_putc(hartid, ch);
     }
@@ -141,32 +111,40 @@ static int mpfs_console_init(void)
     return 0;
 }
 
+static struct plic_data plic = { MPFS_PLIC_ADDR, MPFS_PLIC_NUM_SOURCES };
 
 static int mpfs_irqchip_init(bool cold_boot)
 {
     int rc;
-    u32 hartid = sbi_current_hartid();
+    u32 hartid = current_hartid();
 
     if (cold_boot) {
-        rc = plic_cold_irqchip_init(MPFS_PLIC_ADDR, MPFS_PLIC_NUM_SOURCES, MPFS_HART_COUNT);
+        rc = plic_cold_irqchip_init(&plic);
 
         if (rc) {
             return rc;
         }
     }
 
-    rc = plic_warm_irqchip_init(hartid,
+    rc = plic_warm_irqchip_init(&plic,
         (hartid) ? (2 * hartid - 1) : 0, (hartid) ? (2 * hartid) : -1);
 
     return rc;
 }
+
+static struct clint_data clint = {
+    .addr = MPFS_CLINT_ADDR,
+    .first_hartid = MPFS_HAL_FIRST_HART,
+    .hart_count = MPFS_HART_COUNT,
+    .has_64bit_mmio = true,
+};
 
 static int mpfs_ipi_init(bool cold_boot)
 {
     int rc;
 
     if (cold_boot) {
-        rc = clint_cold_ipi_init(MPFS_CLINT_ADDR, MPFS_HART_COUNT);
+        rc = clint_cold_ipi_init(&clint);
 
         if (rc) {
             return rc;
@@ -182,7 +160,7 @@ static int mpfs_timer_init(bool cold_boot)
     int rc;
 
     if (cold_boot) {
-        rc = clint_cold_timer_init(MPFS_CLINT_ADDR, MPFS_HART_COUNT, TRUE);
+        rc = clint_cold_timer_init(&clint, NULL);
 
         if (rc) {
             return rc;
@@ -192,10 +170,9 @@ static int mpfs_timer_init(bool cold_boot)
     return clint_warm_timer_init();
 }
 
-static int mpfs_system_down(u32 type)
+static int mpfs_reset_check(u32 type, u32 reason)
 {
-    /* For now nothing to do. */
-    return 0;
+	return 0;
 }
 
 #define MPFS_TLB_RANGE_FLUSH_LIMIT 0u
@@ -213,8 +190,8 @@ const struct sbi_platform_operations platform_ops = {
     .misa_check_extension = NULL,
     .misa_get_xlen = NULL,
 
-    .pmp_region_count = mpfs_pmp_region_count,
-    .pmp_region_info = mpfs_pmp_region_info,
+    // .pmp_region_count = mpfs_pmp_region_count,
+    // .pmp_region_info = mpfs_pmp_region_info,
 
     .console_putc = mpfs_console_putc,
     .console_getc = mpfs_console_getc,
@@ -239,8 +216,7 @@ const struct sbi_platform_operations platform_ops = {
     //.hart_start = NULL,
     //.hart_stop = NULL,
 
-    .system_reboot = mpfs_system_down,
-    .system_shutdown = mpfs_system_down,
+    .system_reset_check = mpfs_reset_check,
 
     .vendor_ext_check = NULL,
     .vendor_ext_provider = NULL
@@ -253,8 +229,8 @@ const struct sbi_platform platform = {
     //.features = SBI_PLATFORM_DEFAULT_FEATURES & (~SBI_PLATFORM_HAS_PMP), // already have PMPs setup
     .features = SBI_PLATFORM_DEFAULT_FEATURES, // already have PMPs setup
     .hart_count = MPFS_HART_COUNT,
-    .disabled_hart_mask = MPFS_HARITD_DISABLED,
     .hart_stack_size = MPFS_HART_STACK_SIZE, //TODO: revisit
+    .hart_index2id = hart_idx2id,
     .platform_ops_addr = (unsigned long)&platform_ops,
     .firmware_context = 0
 };

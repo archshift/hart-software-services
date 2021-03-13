@@ -74,7 +74,7 @@ static uint64_t* HSS_MemTestAddressBus(volatile uint64_t *baseAddr, const size_t
     //mHSS_FANCY_PRINTF(LOG_NORMAL, "Walking up address bus, verifying set cells" CRLF);
     for (offset = 1u; (offset & addrMask) != 0u; offset <<= 1) {
         if (baseAddr[offset] != pattern) {
-            mHSS_FANCY_PRINTF(LOG_ERROR, "1: 0x%016p==0x%016llx vs expected 0x%016llx" CRLF,
+            mHSS_FANCY_PRINTF(LOG_ERROR, "1: %p==0x%016llx vs expected 0x%016llx" CRLF,
                 baseAddr + offset, baseAddr[offset], pattern);
             result = ((uint64_t *)&baseAddr[offset]);
             break;

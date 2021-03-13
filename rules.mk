@@ -60,10 +60,9 @@ CORE_CFLAGS+=-Wall -Werror -Wshadow -fno-builtin-printf \
    -fomit-frame-pointer -Wredundant-decls -Wall -Wundef -Wwrite-strings -fno-strict-aliasing \
    -fno-common -Wendif-labels -Wmissing-include-dirs -Wempty-body -Wformat=2 -Wformat-security \
    -Wformat-y2k -Winit-self -Wignored-qualifiers -Wold-style-declaration -Wold-style-definition \
-   -Wtype-limits -Wstrict-prototypes -Wimplicit-fallthrough=5
+   -Wtype-limits -Wstrict-prototypes -Wimplicit-fallthrough=5 -Wno-error=shadow -Wno-error=lto-type-mismatch
 
 CORE_CFLAGS+=-mno-fdiv
-# CORE_CFLAGS+=-fanalyzer
 
 # Compiler hooks to enable link-time garbage collection
 CORE_CFLAGS+=-ffunction-sections -fdata-sections
@@ -82,7 +81,7 @@ endif
 # TODO - introduce trapv for integer overflows etc... Currently missing primitives
 #CORE_CFLAGS+=-ftrapv
 
-CFLAGS=-std=c11 $(CORE_CFLAGS) $(PLATFORM_CFLAGS) -Wmissing-prototypes
+CFLAGS=-std=gnu11 $(CORE_CFLAGS) $(PLATFORM_CFLAGS) -Wmissing-prototypes
 
 # separate flags for C files that need GCC Extensions...
 CFLAGS_GCCEXT=$(CORE_CFLAGS) $(PLATFORM_CFLAGS)

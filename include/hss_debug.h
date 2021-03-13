@@ -39,6 +39,9 @@ extern "C" {
 #endif
 
 #include "hss_types.h"
+#ifdef CONFIG_OPENSBI
+#include <sbi/sbi_console.h>
+#endif
 
 #if IS_ENABLED(CONFIG_CC_HAS_INTTYPES)
 #    include "inttypes.h"
@@ -68,9 +71,7 @@ typedef enum {
 
 void HSS_Debug_Highlight(HSS_Debug_LogLevel_t logLevel);
 
-int sbi_printf(const char *fmt, ...);
-void sbi_puts(const char *buf);
-void sbi_putc(char c);
+#pragma GCC diagnostic ignored "-Wformat"
 
 void HSS_Debug_Timestamp(void);
 #    define mHSS_TIMESTAMP HSS_Debug_Timestamp()
@@ -110,9 +111,9 @@ void HSS_Debug_Timestamp(void);
 #      define mHSS_DEBUG_PRINTF_EX sbi_printf
 #      define mHSS_DEBUG_PUTS sbi_puts
 #  else
-#    define mHSS_DEBUG_PRINTF (void)
-#    define mHSS_DEBUG_PRINTF_EX (void)
-#    define mHSS_DEBUG_PUTS (void)
+#    define mHSS_DEBUG_PRINTF(...)
+#    define mHSS_DEBUG_PRINTF_EX(...)
+#    define mHSS_DEBUG_PUTS(...)
 #  endif
 #endif
 

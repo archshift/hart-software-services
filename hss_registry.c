@@ -95,7 +95,7 @@ static enum IPIStatusCode HSS_Null_IPIHandler(TxId_t transaction_id, enum HSSHar
     (void)immediate_arg;
     (void)p_extended_buffer_in_ddr;
 
-    mHSS_DEBUG_PRINTF(LOG_NORMAL, "%s() called -- ignoring" CRLF);
+    mHSS_DEBUG_PRINTF(LOG_NORMAL, "called -- ignoring" CRLF);
     return IPI_SUCCESS;
 }
 
@@ -164,6 +164,8 @@ const struct IPI_Handler ipiRegistry[] = {
     { IPI_MSG_CONTINUE, 		HSS_Null_IPIHandler },
 #if IS_ENABLED(CONFIG_SERVICE_GOTO)
     { IPI_MSG_GOTO, 			HSS_GOTO_IPIHandler },
+#else
+    { IPI_MSG_GOTO,             HSS_Null_IPIHandler },
 #endif
 #if IS_ENABLED(CONFIG_SERVICE_OPENSBI)
     { IPI_MSG_OPENSBI_INIT, 	  	HSS_OpenSBI_IPIHandler },

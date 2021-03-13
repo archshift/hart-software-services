@@ -28,13 +28,13 @@
 
 SRCS-$(CONFIG_SERVICE_OPENSBI) += \
 	services/opensbi/opensbi_service.c \
-	thirdparty/opensbi/lib/utils/sys/clint.c \
-	thirdparty/opensbi/lib/utils/irqchip/plic.c \
-	thirdparty/opensbi/lib/utils/libfdt/fdt.c \
-	thirdparty/opensbi/lib/utils/libfdt/fdt_ro.c \
-	thirdparty/opensbi/lib/utils/libfdt/fdt_rw.c \
-	thirdparty/opensbi/lib/utils/libfdt/fdt_wip.c \
-	thirdparty/opensbi/lib/utils/libfdt/fdt_addresses.c \
+	sm/opensbi/lib/utils/sys/clint.c \
+	sm/opensbi/lib/utils/irqchip/plic.c \
+	sm/opensbi/lib/utils/libfdt/fdt.c \
+	sm/opensbi/lib/utils/libfdt/fdt_ro.c \
+	sm/opensbi/lib/utils/libfdt/fdt_rw.c \
+	sm/opensbi/lib/utils/libfdt/fdt_wip.c \
+	sm/opensbi/lib/utils/libfdt/fdt_addresses.c \
 
 ifdef CONFIG_PLATFORM_MPFS
 SRCS-$(CONFIG_SERVICE_OPENSBI) += \
@@ -43,18 +43,47 @@ endif
 
 ifdef CONFIG_PLATFORM_FU540
 SRCS-$(CONFIG_SERVICE_OPENSBI) += \
-	thirdparty/opensbi/lib/utils/serial/sifive-uart.c \
-	thirdparty/opensbi/platform/sifive/fu540/platform.c
+	sm/opensbi/lib/utils/serial/sifive-uart.c \
+	sm/opensbi/platform/sifive/fu540/platform.c
 endif
 
+CONFIG_SM := y
+ifdef CONFIG_SM
+INCLUDES += -DTARGET_PLATFORM_HEADER=\"platform/generic/platform.h\"
+SRCS-$(CONFIG_SERVICE_OPENSBI) += \
+	sm/src/attest.c \
+	sm/src/cpu.c \
+	sm/src/crypto.c \
+	sm/src/enclave.c \
+	sm/src/pmp.c \
+	sm/src/sm.c \
+	sm/src/sm-sbi.c \
+	sm/src/sm-sbi-opensbi.c \
+	sm/src/thread.c \
+	sm/src/sbi_trap_hack.c \
+	sm/src/ipi.c \
+	sm/src/sha3/sha3.c \
+	sm/src/ed25519/fe.c \
+	sm/src/ed25519/ge.c \
+	sm/src/ed25519/keypair.c \
+	sm/src/ed25519/sc.c \
+	sm/src/ed25519/sign.c \
+	sm/src/hkdf_sha3_512/hkdf_sha3_512.c \
+	sm/src/hmac_sha3/hmac_sha3.c \
+	sm/src/plugins/plugins.c \
+	sm/src/platform/generic/platform.c
+ASM_SRCS += \
+	sm/src/mprv.S \
+	sm/src/trap.S
+endif
 
 ifdef CONFIG_OPENSBI
 INCLUDES += \
 	-I./services/opensbi \
-	-I./thirdparty/opensbi/include/sbi \
-	-I./thirdparty/opensbi/include \
-	-I./thirdparty/opensbi/lib/utils/libfdt \
-
+	-I./sm/opensbi/include/sbi \
+	-I./sm/opensbi/include \
+	-I./sm/opensbi/lib/utils/libfdt \
+	-I./sm/src
 endif
 
 ifdef CONFIG_PROVIDE_DTB
