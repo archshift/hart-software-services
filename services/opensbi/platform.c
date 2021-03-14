@@ -75,6 +75,7 @@ static int mpfs_final_init(bool cold_boot)
 	void *fdt = sbi_scratch_thishart_arg1_ptr();
     fdt_cpu_fixup(fdt);
 	fdt_fixups(fdt);
+	fdt_reserved_memory_nomap_fixup(fdt);
 
     return 0;
 }

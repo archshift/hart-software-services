@@ -186,9 +186,9 @@ enum IPIStatusCode HSS_OpenSBI_IPIHandler(TxId_t transaction_id, enum HSSHartId 
         csr_write(mscratch, &(scratches[hartid].scratch));
 
 
-        extern unsigned long _hss_start, _hss_end;
-        scratches[hartid].scratch.fw_start = (unsigned long)&_hss_start;
-        scratches[hartid].scratch.fw_size = (unsigned long)&_hss_end - (unsigned long)&_hss_start;
+        extern unsigned long __l2lim_start, __l2lim_end;
+        scratches[hartid].scratch.fw_start = (unsigned long)&__l2lim_start;
+        scratches[hartid].scratch.fw_size = (unsigned long)&__l2lim_end - (unsigned long)&__l2lim_start;
 
         scratches[hartid].scratch.next_addr = *(unsigned long*)p_extended_buffer;
         scratches[hartid].scratch.next_mode = (unsigned long)immediate_arg;
@@ -205,7 +205,12 @@ enum IPIStatusCode HSS_OpenSBI_IPIHandler(TxId_t transaction_id, enum HSSHartId 
 #    error Unknown PLATFORM settings
 #  endif
 #else
-        scratches[hartid].scratch.next_arg1 = 0u;
+        // TODO: hardcoded address
+        uint8_t *__fdt_start = (uint8_t *)0xa0000000, *__fdt_end = (uint8_t *)0xa0000400;
+        int fdt_create_empty_tree(void *buf, int bufsize);
+        int res = fdt_create_empty_tree(__fdt_start, __fdt_end - __fdt_start);
+        sbi_printf("Created device tree at %p? res=%d\n", __fdt_start, res);
+        scratches[hartid].scratch.next_arg1 = (uintptr_t)__fdt_start;
 #endif
 
         HSS_OpenSBI_DoBoot(hartid);
